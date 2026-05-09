@@ -1,0 +1,46 @@
+ESP_Failure_Detection/
+│
+├── configs/                       <-- (BARU) Tempat menyimpan parameter
+│   └── config.yaml                # Parameter seperti n_clusters=6, window_size, xgboost_params
+│
+├── data/
+│   ├── raw/                       # Data asli yang tidak boleh diubah (dailyData.csv)
+│   ├── interim/                   <-- (BARU) Data sementara (misal: setelah interpolasi tapi belum dinormalisasi)
+│   └── processed/                 # Data akhir yang sudah jadi fitur siap latih (X_final, y_final)
+│
+├── notebooks/                     <-- (BARU) Eksplorasi Data (Sangat penting di paper)
+│   ├── 01_EDA_and_Visualization.ipynb  # Memvisualisasikan sinyal ESP (Normal vs Anomali)
+│   ├── 02_DTW_Clustering.ipynb         # Eksperimen melihat bentuk 6 klaster anomali
+│   └── 03_TSFEL_Feature_Analysis.ipynb # Memilih fitur TSFEL yang paling berdampak
+│
+├── src/                           <-- Dibuat lebih modular (Sub-folder)
+│   ├── __init__.py
+│   ├── data/                      # Skrip khusus modifikasi data
+│   │   ├── make_dataset.py        # Ekstraksi dan interpolasi data mentah
+│   │   └── normalize.py           # Logika pembagian median per sumur
+│   ├── features/                  # Skrip khusus pembuatan fitur
+│   │   ├── build_tsfel.py         # Ekstraksi TSFEL
+│   │   └── build_dtw.py           # Perhitungan jarak ke pustaka anomali
+│   ├── models/                    # Skrip khusus algoritma
+│   │   ├── train_clustering.py    # Logika pembuatan Anomaly Library
+│   │   └── train_xgboost.py       # Logika training dan time-based split
+│   └── visualization/             <-- (BARU) Skrip untuk membuat grafik
+│       └── visualize.py           # Fungsi plot Confusion Matrix, ROC Curve, dll
+│
+├── models/
+│   ├── anomaly_library_centers.npy
+│   └── xgboost_production.json
+│
+├── reports/                       <-- (BARU) Output untuk laporan/presentasi
+│   ├── figures/                   # Gambar grafik (akurasi, bentuk sinyal) disimpan di sini
+│   └── metrics_evaluation.json    # Menyimpan nilai akurasi, presisi, recall (misal: 93%)
+│
+├── tests/                         <-- (BARU) Pengujian kode agar tim tidak saling merusak
+│   └── test_preprocessing.py      # Script otomatis mengecek apakah data ada yang inf/NaN
+│
+├── .gitignore                     # Mencegah data raw ber-GB-GB ter-upload ke GitHub
+├── requirements.txt
+├── README.md                      <-- Penjelasan cara menjalankan proyek (Wajib ada)
+└── main.py                        # Konduktor utama (membaca config.yaml dan menjalankan src/)
+
+Ini folder tree terbaru
