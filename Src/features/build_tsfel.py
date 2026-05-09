@@ -49,32 +49,33 @@ def extract_tsfel_features(df):
 
 
 if __name__ == "__main__":
-    print("=== MENGUJI MODUL BUILD_TSFEL.PY ===")
+    print("=== MENGUJI MODUL BUILD_TSFEL.PY DENGAN DATA ASLI ===")
     
-    # 1. Buat Data Dummy (Seolah-olah dari Anggota 1)
-    # Sengaja kita buat nilai yang konstan di Load_Norm untuk memastikan
-    # fitur pembersihan (sanitasi) inf/NaN kita bekerja.
-    df_dummy = pd.DataFrame({
-        'Freq_Norm': [0.5, 0.6, 0.7, 0.8, 0.9],
-        'Load_Norm': [1.0, 1.0, 1.0, 1.0, 1.0] 
-    })
+    # 1. Mengambil data matang hasil kerja Anggota 1
+    # Pastikan jalur filenya benar jika di-run dari root folder ESP-FAILURE-DETECTION
+    file_path = "C:\\Users\\Iman Fath Hatta\\ESP-FAILURE-DETECTION\\Data\\Processed\\processed_data.csv" 
     
-    print("Data Input Dummy:")
-    print(df_dummy)
-    print("-" * 30)
-
-    # 2. Panggil fungsi yang sudah Anda definisikan di atas!
     try:
-        hasil_tsfel = extract_tsfel_features(df_dummy)
+        print(f"Membaca data dari: {file_path}")
+        df_asli = pd.read_csv(file_path)
+        
+        # Tampilkan sedikit info data aslinya
+        print("Data Input Asli (5 baris pertama):")
+        print(df_asli[['Well_ID', 'Freq_Norm', 'Load_Norm']].head())
+        print("-" * 30)
+
+        # 2. Panggil fungsi ekstraksi TSFEL menggunakan data asli!
+        hasil_tsfel = extract_tsfel_features(df_asli)
         
         print("\n=== HASIL EKSTRAKSI ===")
         print(f"Bentuk Dataframe Output: {hasil_tsfel.shape[0]} baris x {hasil_tsfel.shape[1]} kolom")
         
         print("\nMenampilkan 5 Kolom Pertama (sebagai sampel):")
-        # Hanya mencetak 5 kolom pertama agar terminal tidak kepenuhan teks
         print(hasil_tsfel.iloc[:, :5].head()) 
         
-        print("\n[SUKSES] Modul build_tsfel.py Anda berfungsi sempurna!")
+        print("\n[SUKSES] Modul build_tsfel.py Anda berhasil memproses data asli!")
         
+    except FileNotFoundError:
+        print(f"\n[GAGAL] File {file_path} tidak ditemukan. Pastikan Anda sudah menjalankan normalize.py milik Anggota 1.")
     except Exception as e:
         print(f"\n[GAGAL] Terjadi error: {e}")

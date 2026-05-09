@@ -54,31 +54,38 @@ def calculate_dtw_distances(df, anomaly_centers):
 
 
 if __name__ == "__main__":
-    print("=== MENGUJI MODUL BUILD_DTW.PY ===")
+    print("=== MENGUJI MODUL BUILD_DTW.PY DENGAN DATA ASLI ===")
     
-    # 1. Buat Data Dummy (Seolah-olah dari Anggota 1)
-    df_dummy = pd.DataFrame({
-        'Freq_Norm': np.random.rand(5),  # 5 baris data dummy
-        'Load_Norm': np.random.rand(5)
-    })
+    # 1. Jalur file input (Hasil kerja Anda sebagai Anggota 1)
+    path_data_asli = "C:\\Users\\Iman Fath Hatta\\ESP-FAILURE-DETECTION\\Data\\Processed\\processed_data.csv"
+    # Jalur file dari Anggota 2 (Sesuaikan jika Anggota 2 sudah memberi file)
+    path_pustaka_anomali = "models/anomaly_library_centers.npy" 
     
-    print("Data Input Dummy:")
-    print(df_dummy)
-    print("-" * 30)
-
-    # 2. Buat Klaster Anomali Dummy (Seolah-olah dari Anggota 2)
-    # Anggap ada 6 klaster, 1 timestep, 2 fitur
-    dummy_centers = np.random.rand(6, 1, 2)
-    
-    # 3. Panggil fungsi yang sudah Anda definisikan di atas!
     try:
-        hasil_dtw = calculate_dtw_distances(df_dummy, dummy_centers)
+        # A. Muat Data Asli
+        print(f"Membaca data asli dari: {path_data_asli}")
+        df_asli = pd.read_csv(path_data_asli)
         
-        print("\n=== HASIL EKSTRAKSI ===")
+        # B. Muat Pustaka Anomali (Hasil Anggota 2)
+        if os.path.exists(path_pustaka_anomali):
+            anomaly_centers = load_anomaly_library(path_pustaka_anomali)
+        else:
+            print(f"[Peringatan] File {path_pustaka_anomali} belum ada.")
+            print("Menggunakan 'Pola Cadangan' (Dummy) untuk simulasi...")
+            # Simulasi 6 pola anomali (1 timestep, 2 fitur)
+            anomaly_centers = np.random.rand(6, 1, 2)
+
+        # C. Jalankan Perhitungan DTW
+        # Kita coba tes pada 100 baris pertama saja dulu agar tidak terlalu lama
+        print("\nMencoba menghitung DTW untuk 100 baris pertama...")
+        hasil_dtw = calculate_dtw_distances(df_asli.head(100), anomaly_centers)
+        
+        print("\n=== HASIL EKSTRAKSI DTW ===")
         print("Bentuk Dataframe Output:", hasil_dtw.shape)
-        print("Hasil Tabel Jarak:")
-        print(hasil_dtw)
-        print("\n[SUKSES] Modul build_dtw.py Anda berfungsi sempurna!")
+        print("Tampilan 5 Baris Pertama Jarak ke Tiap Klaster:")
+        print(hasil_dtw.head())
         
+        print("\n[SUKSES] Modul build_dtw.py Anda berhasil memproses data!")
+
     except Exception as e:
         print(f"\n[GAGAL] Terjadi error: {e}")
