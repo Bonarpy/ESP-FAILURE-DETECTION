@@ -2,48 +2,41 @@ import pandas as pd
 import numpy as np
 import os
 
-def normalize_features(input_path, output_path):
-    """
-    Fungsi untuk membaca data interim, membuat label anomali, 
-    dan menormalisasi nilai Frekuensi & Beban berdasarkan median sumur.
-    """
-    print(f"[Data Engineer] Membaca data interim dari: {input_path}")
-    
-    # 1. Pastikan folder output-nya ada
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    
-    # 2. Baca data dari tahap sebelumnya
-    df = pd.read_csv(input_path)
-    
-    print("[Data Engineer] Membuat Label Target dan Menormalisasi Skala...")
-    # 3. Buat Label Target (1 = Anomali, 0 = Normal)
-    df['Is_Anomaly'] = (df['Downtime'] > 0).astype(int)
-    
-    # 4. Normalisasi
-    df['Freq_Norm'] = df['Frequency'] / df['Frequency'].max()
-    df['Load_Norm'] = df.groupby('Well_ID')['Load'].transform(lambda x: x / x.median())
-    
-    print("[Data Engineer] Melakukan sanitasi akhir (Pembersihan inf/NaN)...")
-    # 5. Pembersihan Akhir (Sanitasi inf dan NaN jadi 0)
-    df.replace([np.inf, -np.inf], np.nan, inplace=True)
-    df.fillna(0, inplace=True)
-    
-    # 6. Simpan hasil akhir (Data Matang)
-    df.to_csv(output_path, index=False)
-    print(f"[Data Engineer] Tahap 2 Selesai! Data matang siap pakai disimpan di: {output_path}")
-    
-    return df
+print("1. Membaca Data Interim (Hasil pembersihan Step 2)...")
+# Membaca file interim yang udah lu bikin sebelumnya
+df = pd.read_csv('/Users/kevinsantosap/ESP-FAILURE-DETECTION/Data/Interim/interim_data.csv')
 
-# BLOK PENGUJIAN (Agar bisa di-run langsung di terminal)
-if __name__ == "__main__":
-    print("=== MENGUJI MODUL NORMALIZE.PY ===")
-    file_interim = "C:\\Users\\Iman Fath Hatta\\ESP-FAILURE-DETECTION\\Data\\Interim\\interim_data.csv"
-    file_matang = "C:\\Users\\Iman Fath Hatta\\ESP-FAILURE-DETECTION\\Data\\Processed\\processed_data.csv"
+print("2. Membuat Label Target untuk AI...")
+# AI butuh tahu kapan mesin rusak. Kalau ada Downtime, kita kasih label 1 (Anomali)
+df['Is_Anomaly'] = (df['Downtime'] > 0).astype(int)
 
-    try:
-        df_matang = normalize_features(file_interim, file_matang)
-        print("\nDistribusi Label Anomali:")
-        print(df_matang['Is_Anomaly'].value_counts())
-        print("\n5 Baris pertama Fitur Normalisasi:\n", df_matang[['Well_ID', 'Freq_Norm', 'Load_Norm', 'Is_Anomaly']].head())
-    except Exception as e:
-        print(f"Error: {e}")
+print("3. Memulai Proses Scaling & Normalisasi...")
+# Tipe A: Ditekan jadi skala 0 sampai 1 (Dibagi nilai maksimalnya)
+df['Freq_Norm'] = df['Freq'] / (df['Freq'].max() + 1e-9)
+df['Vibration_Norm'] = df['Vibration'] / (df['Vibration'].max() + 1e-9)
+df['Gas_Sat_Norm'] = df['Gas_Sat'] / (df['Gas_Sat'].max() + 1e-9)
+
+# Tipe B: Dibagi kebiasaan / nilai tengah (median) masing-masing sumur
+# Biar AI tahu batas wajar tiap sumur itu beda-beda
+kolom_median = ['Current', 'Intake_Press', 'Motor_Temp', 'Delta_Press', 'Pwr_Diff', 'Liq_Intake']
+
+for col in kolom_median:
+    df[f'{col}_Norm'] = df.groupby('Well_ID')[col].transform(lambda x: x / (x.median() + 1e-9))
+
+print("4. Membersihkan sisa error pembagian...")
+# Jaga-jaga kalau ada pembagian dengan angka 0 yang bikin hasil jadi tak terhingga (inf)
+df = df.replace([np.inf, -np.inf], np.nan)
+df = df.fillna(0)
+
+# Buang kolom mentah yang angkanya masih gede-gede biar AI nggak bingung
+kolom_mentah_dibuang = [
+    'Freq', 'Current', 'Vibration', 'Intake_Press', 'Motor_Temp', 
+    'Gas_Sat', 'Delta_Press', 'Pwr_Diff', 'Liq_Intake', 'Downtime'
+]
+df = df.drop(columns=kolom_mentah_dibuang)
+
+print("5. Menyimpan Data Final...")
+os.makedirs('/Users/kevinsantosap/ESP-FAILURE-DETECTION/Data/Processed', exist_ok=True)
+df.to_csv('/Users/kevinsantosap/ESP-FAILURE-DETECTION/Data/Processed/processed_data.csv', index=False)
+
+print("✅ SUKSES BESAR! Data udah matang. Cek folder 'data/processed/processed_data.csv'")
