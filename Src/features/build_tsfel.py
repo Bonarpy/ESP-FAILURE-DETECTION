@@ -2,26 +2,34 @@ import pandas as pd
 import numpy as np
 import tsfel
 import warnings
+import os
 
 # Mengabaikan peringatan (warnings) dari tsfel agar terminal tetap bersih
 warnings.filterwarnings('ignore')
 
 def extract_tsfel_features(df):
     """
-    Fungsi untuk mengekstrak fitur statistik dasar dari data deret waktu
+    Fungsi untuk mengekstrak fitur statistik dasar dari 9 parameter sensor ESP
     menggunakan pustaka TSFEL, lalu membersihkannya dari nilai inf/NaN.
     """
-    print("[Anggota 3 - TSFEL] Memulai ekstraksi fitur statistik...")
+    print("[Anggota 3 - TSFEL] Memulai ekstraksi fitur statistik untuk 9 Parameter Sensor...")
     
-    # 1. Pastikan kolom yang dibutuhkan tersedia
-    if not {'Freq_Norm', 'Load_Norm'}.issubset(df.columns):
-        raise ValueError("Dataframe harus memiliki kolom 'Freq_Norm' dan 'Load_Norm'")
+    # 1. Definisi 9 'Kolom Emas' hasil kerja Anggota 1 (Part 4)
+    # Kita tidak memasukkan Well_ID dan Downtime karena itu bukan sinyal
+    sensor_cols = [
+        'Freq', 'Current', 'Vibration', 'Intake_Press', 
+        'Motor_Temp', 'Gas_Sat', 'Delta_Press', 'Pwr_Diff', 'Liq_Intake'
+    ]
+    
+    # Pastikan semua kolom tersebut benar-benar ada di dataframe
+    missing_cols = [col for col in sensor_cols if col not in df.columns]
+    if missing_cols:
+        raise ValueError(f"Kolom berikut tidak ditemukan di data: {missing_cols}")
         
-    # 2. Ambil hanya kolom fitur yang akan diekstrak
-    features_only = df[['Freq_Norm', 'Load_Norm']]
+    # 2. Ambil hanya 9 kolom fitur yang akan diekstrak
+    features_only = df[sensor_cols]
     
-    # 3. Setup TSFEL (Gunakan domain 'statistical' saja agar komputasi efisien)
-    # Anda bisa menggantinya dengan 'all' nanti jika ingin mengekstrak spektral/temporal
+    # 3. Setup TSFEL (Gunakan domain 'statistical' agar cepat dan relevan)
     cgf_settings = tsfel.get_features_by_domain('statistical')
     
     # 4. Proses Ekstraksi
@@ -30,16 +38,14 @@ def extract_tsfel_features(df):
         cgf_settings, 
         features_only, 
         window_size=1, 
-        verbose=0 # verbose=0 agar tidak memunculkan bar loading yang terlalu panjang
+        verbose=0 # verbose=0 agar terminal tidak kepenuhan bar loading
     )
     
     # ==========================================
     # 5. SANITASI DATA (SANGAT PENTING!)
     # ==========================================
     print("[Anggota 3 - TSFEL] Membersihkan nilai Infinity dan NaN hasil ekstraksi...")
-    # Ubah semua nilai inf dan -inf menjadi NaN
     df_tsfel = df_tsfel.replace([np.inf, -np.inf], np.nan)
-    # Isi semua NaN dengan angka 0
     df_tsfel = df_tsfel.fillna(0)
     
     print(f"[Anggota 3 - TSFEL] Selesai! Menghasilkan {df_tsfel.shape[1]} kolom fitur baru yang sudah bersih.")
@@ -47,35 +53,35 @@ def extract_tsfel_features(df):
     return df_tsfel
 
 
-
+# ==========================================
+# BLOK PENGUJIAN
+# ==========================================
 if __name__ == "__main__":
-    print("=== MENGUJI MODUL BUILD_TSFEL.PY DENGAN DATA ASLI ===")
+    print("=== EKSEKUSI PENUH: BUILD_TSFEL.PY (9 PARAMETER) ===")
     
-    # 1. Mengambil data matang hasil kerja Anggota 1
-    # Pastikan jalur filenya benar jika di-run dari root folder ESP-FAILURE-DETECTION
-    file_path = "C:\\Users\\Iman Fath Hatta\\ESP-FAILURE-DETECTION\\Data\\Processed\\processed_data.csv" 
+    base_dir = os.getcwd()
+    file_path = os.path.join(base_dir, 'Data', 'Processed', 'esp_data_final_preprocessed.csv')
     
     try:
         print(f"Membaca data dari: {file_path}")
         df_asli = pd.read_csv(file_path)
-        
-        # Tampilkan sedikit info data aslinya
-        print("Data Input Asli (5 baris pertama):")
-        print(df_asli[['Well_ID', 'Freq_Norm', 'Load_Norm']].head())
-        print("-" * 30)
+        print(f"Total data yang akan diproses: {df_asli.shape[0]} baris.")
+        print("Mengekstrak fitur TSFEL... (Ini akan memakan waktu lama, silakan buat kopi ☕)")
 
-        # 2. Panggil fungsi ekstraksi TSFEL menggunakan data asli!
+        # EKSEKUSI PENUH TANPA BATASAN BARIS
         hasil_tsfel = extract_tsfel_features(df_asli)
         
-        print("\n=== HASIL EKSTRAKSI ===")
-        print(f"Bentuk Dataframe Output: {hasil_tsfel.shape[0]} baris x {hasil_tsfel.shape[1]} kolom")
+        # PROSES PENYIMPANAN KE CSV
+        output_dir = os.path.join(base_dir, 'Data', 'Processed')
+        os.makedirs(output_dir, exist_ok=True)
         
-        print("\nMenampilkan 5 Kolom Pertama (sebagai sampel):")
-        print(hasil_tsfel.iloc[:, :5].head()) 
+        output_path = os.path.join(output_dir, 'tsfel_features.csv')
+        hasil_tsfel.to_csv(output_path, index=False)
         
-        print("\n[SUKSES] Modul build_tsfel.py Anda berhasil memproses data asli!")
+        print(f"\n✅ SUKSES! {hasil_tsfel.shape[1]} Fitur TSFEL berhasil diekstrak dari seluruh data.")
+        print(f"📂 File fisik tersimpan di: {output_path}")
         
     except FileNotFoundError:
-        print(f"\n[GAGAL] File {file_path} tidak ditemukan. Pastikan Anda sudah menjalankan normalize.py milik Anggota 1.")
+        print(f"\n❌ [GAGAL] File {file_path} tidak ditemukan.")
     except Exception as e:
-        print(f"\n[GAGAL] Terjadi error: {e}")
+        print(f"\n❌ [GAGAL] Terjadi error: {e}")
