@@ -67,7 +67,7 @@ if __name__ == "__main__":
     
     base_dir = os.getcwd()
     path_data_asli = os.path.join(base_dir, 'Data', 'Processed', 'esp_data_final_preprocessed.csv')
-    path_pustaka_anomali = os.path.join(base_dir, 'models', 'anomaly_library_centers.npy') 
+    path_pustaka_anomali = os.path.join(base_dir, 'Models', 'anomaly_library_centers.npy') 
     
     try:
         print(f"Membaca data dari: {path_data_asli}")
