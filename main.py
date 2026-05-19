@@ -15,12 +15,15 @@ from Src.features.build_dtw import calculate_dtw_distances, load_anomaly_library
 def run_pipeline():
     print("=== MEMULAI PIPELINE ESP FAILURE DETECTION ===")
     
-    # 1. Baca Panel Kontrol
-    with open("configs/config.yaml", "r") as file:
-        config = yaml.safe_load(file)
-        
-    paths = config['paths']
-    
+    # --- TAMBAHKAN KAMUS JALUR (PATHS) INI DI SINI ---
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    paths = {
+        'anomaly_library': os.path.join(base_dir, 'models', 'anomaly_library.pkl'),
+        'xgboost_model': os.path.join(base_dir, 'models', 'xgboost_production.json'),
+        'output_predictions': os.path.join(base_dir, 'reports', 'prediksi_kerusakan_esp.csv')
+    }
+    # -------------------------------------------------
+
     # ==========================================
     # TAHAP 1: DATA ENGINEERING
     # ==========================================
@@ -60,18 +63,23 @@ def run_pipeline():
     X_final = pd.concat([df_tsfel.reset_index(drop=True), df_dtw.reset_index(drop=True)], axis=1)
     print(f"Data final siap disuapkan ke AI! Bentuk: {X_final.shape}")
     
-    # ==========================================
+   # ==========================================
     # TAHAP 4: PREDIKSI XGBOOST
     # ==========================================
     print("\n[TAHAP 4] Memanggil AI XGBoost (Anggota 4)...")
-    if os.path.exists(paths['xgboost_model']):
+    
+    # KITA GUNAKAN PATH ABSOLUT UNTUK MENCEGAH SALAH BACA FILE LAMA
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    model_path = os.path.join(base_dir, "models", "xgboost_production.json")
+    
+    if os.path.exists(model_path):
         model = xgb.XGBClassifier()
-        model.load_model(paths['xgboost_model'])
+        model.load_model(model_path)
         
-        print("AI sedang memprediksi potensi kerusakan dengan fitur TSFEL & DTW...")
-        
-        # KITA GUNAKAN X_final KARENA AI SUDAH PINTAR!
+        print("AI sedang memprediksi potensi kerusakan dengan 203 fitur TSFEL & DTW...")
         try:
+            # Pastikan urutan kolom X_final sama persis dengan yang dipelajari AI saat training
+            # XGBoost sangat sensitif terhadap urutan kolom
             prediksi = model.predict(X_final)
         except Exception as e:
             print(f"❌ ERROR Prediksi: {e}")
@@ -80,11 +88,13 @@ def run_pipeline():
         df_matang['Prediksi_Kerusakan'] = prediksi
         
         # Simpan hasil laporan
-        os.makedirs(os.path.dirname(paths['output_predictions']), exist_ok=True)
-        df_matang.to_csv(paths['output_predictions'], index=False)
-        print(f"\n[SELESAI] Laporan prediksi berhasil disimpan di: {paths['output_predictions']} 🎉")
+        output_path = os.path.join(base_dir, "reports", "prediksi_kerusakan_esp.csv")
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        df_matang.to_csv(output_path, index=False)
+        print(f"\n[SELESAI] Laporan prediksi berhasil disimpan di: {output_path} 🎉")
     else:
-        print(f"[Warning] File model {paths['xgboost_model']} belum ada! Prediksi dibatalkan.")
+        print(f"❌ ERROR: File model {model_path} tidak ditemukan!")
+        print("Harap jalankan perintah ini dulu di terminal: python Src/models/train_xgboost.py")
 
 if __name__ == "__main__":
     run_pipeline()
