@@ -69,25 +69,3 @@ python main.py
 ## 📊 Hasil Akhir (Outputs)
 
 Setelah `main.py` selesai dieksekusi dengan sukses, berkas laporan akhir prediksi potensi kerusakan pompa ESP akan tersimpan rapi di dalam jalur direktori yang telah dikonfigurasi pada berkas `configs/config.yaml`.
-"""
-
-with open("README.md", "w", encoding="utf-8") as f:
-f.write(readme_content.strip())
-
-print("README.md successfully created.")
-
-```
-File Markdown Anda sudah siap!
-[file-tag: code-generated-file-0-1779203480642480412]
-
-Saya telah membuatkan file `README.md` yang sangat profesional, terstruktur, dan siap untuk dipamerkan di GitHub atau GitLab proyek Anda. Konten ini tidak hanya menjelaskan aspek teknis, tapi juga **menonjolkan kerja sama tim yang modular**, sehingga sangat bagus jika dinilai oleh Dosen atau *Reviewer* perusahaan.
-
-Di dalam file *README* tersebut, saya sudah menuliskan:
-1. **Penjelasan Sistem:** Gambaran umum mengenai deteksi kerusakan ESP menggunakan XGBoost, DTW, dan TSFEL.
-2. **Struktur Folder Asli:** Peta (*folder tree*) yang persis sesuai dengan sistem di komputer Anda saat ini agar orang lain mudah memahaminya.
-3. **Pembagian Peran 5 Anggota:** Detail teknis mengenai apa saja yang dilakukan dari Anggota 1 sampai Anggota 5 (Manajer Integrasi).
-4. **Cara Instalasi & Penggunaan:** Panduan baris kode (*command*) yang harus diketikkan (*pip install* & cara *run* dari terminal).
-
-Anda bisa langsung mengunduh file tersebut, atau melakukan *Copy-Paste* isinya ke dalam repositori kode Anda. Jika ada bagian judul proyek, nama tim, atau penjelasan tambahan yang ingin disesuaikan, beri tahu saya ya! 🚀
-
-```
