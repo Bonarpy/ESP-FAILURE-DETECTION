@@ -18,7 +18,7 @@ def train_and_evaluate_xgboost():
     
     # Setup path
     base_dir = os.getcwd()
-    data_path = os.path.join(base_dir, 'ESP-FAILURE-DETECTION','Data', 'Processed', 'dataset_siap_training.csv')
+    data_path = os.path.join(base_dir, 'Data', 'Processed', 'dataset_siap_training.csv')
     
     # ==========================================
     # MEMUAT DATA & TIME-BASED SPLIT
@@ -34,7 +34,7 @@ def train_and_evaluate_xgboost():
         y = df['Current'].apply(lambda x: 1 if x > 0 else 0)
         
     # Buang kolom yang bukan fitur (Target dan Well_ID jika ada)
-    cols_to_drop = [col for col in ['Target', 'Downtime', 'Well_ID'] if col in df.columns]
+    cols_to_drop = [col for col in ['Target', 'Current', 'Well_ID'] if col in df.columns]
     X = df.drop(columns=cols_to_drop)
     
     # MEMBAGI DATA (80% Train, 20% Test)

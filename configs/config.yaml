@@ -1,0 +1,8 @@
+best_hyperparameters:
+  colsample_bytree: 1.0
+  learning_rate: 0.2
+  max_depth: 9
+  n_estimators: 300
+  subsample: 0.8
+model_name: XGBoost ESP Anomaly Detector
+version: '1.0'
