@@ -26,13 +26,8 @@ def run_pipeline():
     # ==========================================
     print("\n[TAHAP 1] Menjalankan Data Engineer (Anggota 1)...")
     
-    # TRIK RAHASIA: Mematikan popup grafik matplotlib tanpa mengedit kode Anggota 1!
-    # Kita mengatur environment laptop secara virtual khusus untuk proses ini
-    custom_env = os.environ.copy()
-    custom_env["MPLBACKEND"] = "Agg" 
-    
-    # Kita panggil kode Anggota 1 secara eksternal layaknya lewat terminal
-    subprocess.run(["python", "Src/data/preprocessing.py"], env=custom_env)
+    # Kita panggil kode Anggota 1 secara normal agar grafiknya muncul
+    subprocess.run(["python", "Src/data/preprocessing.py"])
     
     # Mengambil file hasil jadinya Anggota 1
     file_matang_anggota1 = "Data/Processed/dataset_siap_training.csv"
@@ -73,24 +68,23 @@ def run_pipeline():
         model = xgb.XGBClassifier()
         model.load_model(paths['xgboost_model'])
         
-        print("AI sedang memprediksi potensi kerusakan...")
+        print("AI sedang memprediksi potensi kerusakan dengan fitur TSFEL & DTW...")
         
-        # --- PERBAIKAN SEMENTARA ---
-        # Karena Anggota 4 belum melatih model dengan TSFEL/DTW, 
-        # kita suapkan 8 fitur dasar yang diminta oleh model lama ini:
-        fitur_model_lama = ['Freq', 'Vibration', 'Intake_Press', 'Motor_Temp', 'Gas_Sat', 'Delta_Press', 'Pwr_Diff', 'Liq_Intake']
-        X_sementara = df_matang[fitur_model_lama]
-        
-        # Prediksi menggunakan fitur dasar
-        prediksi = model.predict(X_sementara)
-        # ---------------------------
+        # KITA GUNAKAN X_final KARENA AI SUDAH PINTAR!
+        try:
+            prediksi = model.predict(X_final)
+        except Exception as e:
+            print(f"❌ ERROR Prediksi: {e}")
+            return
         
         df_matang['Prediksi_Kerusakan'] = prediksi
         
+        # Simpan hasil laporan
         os.makedirs(os.path.dirname(paths['output_predictions']), exist_ok=True)
-        
         df_matang.to_csv(paths['output_predictions'], index=False)
         print(f"\n[SELESAI] Laporan prediksi berhasil disimpan di: {paths['output_predictions']} 🎉")
     else:
         print(f"[Warning] File model {paths['xgboost_model']} belum ada! Prediksi dibatalkan.")
-        
+
+if __name__ == "__main__":
+    run_pipeline()
