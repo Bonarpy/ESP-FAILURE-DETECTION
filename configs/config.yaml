@@ -1,8 +1,46 @@
+# ==========================================
+# ESP FAILURE DETECTION - UNIFIED CONFIG
+# ==========================================
+
+# Metadata Model (Dari Anggota 4)
+model_name: "XGBoost ESP Anomaly Detector"
+version: "1.0"
+
+# 1. Jalur File (Paths)
+paths:
+  raw_data: "data/raw/dailyData.csv"
+  interim_data: "data/interim/interim_data.csv"
+  processed_data: "data/processed/processed_data.csv"
+  anomaly_library: "models/anomaly_library_centers.npy"
+  xgboost_model: "models/xgboost_production.json"
+  output_predictions: "reports/final_predictions.csv"
+
+# 2. Parameter Emas (11 Kolom Terpilih)
+features:
+  core_columns:
+    - "Well_ID"
+    - "DOWN_TIME_HOURS"
+    - "ESP Data - Output Frequency"
+    - "ESP Data - Drive Current"
+    - "ESP Data - Intake Pressure"
+    - "ESP Data - Motor Winding Temperature"
+    - "ESP Data - Vibration X"
+    - "Power_Difference"
+    - "Pump_Delta_Pressure"
+    - "Gas_Saturation_in_Pump"
+    - "Liquid_Intake"
+    - "Startup_Count"
+    - "ESP Data - Drive Voltage"
+
+# 3. Pengaturan Fitur
+model_settings:
+  tsfel_domain: "statistical"
+  dtw_clusters: 6
+
+# 4. Hasil Hyperparameter Tuning (Dari Anggota 4)
 best_hyperparameters:
   colsample_bytree: 1.0
   learning_rate: 0.2
   max_depth: 9
   n_estimators: 300
   subsample: 0.8
-model_name: XGBoost ESP Anomaly Detector
-version: '1.0'
